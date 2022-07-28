@@ -50,6 +50,24 @@ function apiCreateTask(title, description) {
     );
 }
 
+function apiDeleteTask(taskId) {
+    return fetch(
+        apihost + '/api/tasks/' + taskId,
+        {
+            headers: { Authorization: apikey },
+            method: 'DELETE'
+        }
+    ).then(
+        function (resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
+}
+
+
 function renderTask(taskId, title, description, status) {
     const section = document.createElement('section');
     section.className = 'card mt-5 shadow-sm';
@@ -83,11 +101,19 @@ function renderTask(taskId, title, description, status) {
         // tu znajdzie się obsługa kliknięcia przycisku "Finish"
     }
 
+    // ...
     const deleteButton = document.createElement('button');
     deleteButton.className = 'btn btn-outline-danger btn-sm ml-2';
     deleteButton.innerText = 'Delete';
     headerRightDiv.appendChild(deleteButton);
-// tu znajdzie się obsługa kliknięcia przycisku "Delete"
+
+    deleteButton.addEventListener('click', function() {
+        apiDeleteTask(taskId).then(
+            function() {
+                section.parentElement.removeChild(section);
+            }
+        );
+    });
 
     const ul = document.createElement('ul');
     ul.className = 'list-group list-group-flush';
@@ -103,7 +129,6 @@ function renderTask(taskId, title, description, status) {
         }
     );
 
-    // formularz dodawania nowych operacji chcemy widzieć tylko w otwartych zadaniach
     if(status == 'open') {
         const addOperationDiv = document.createElement('div');
         addOperationDiv.className = 'card-body js-task-open-only';
@@ -132,7 +157,6 @@ function renderTask(taskId, title, description, status) {
         addButton.innerText = 'Add';
         inputGroupAppend.appendChild(addButton);
 
-        // tu znajdzie się obsługa wysłania formularza
     }
 
 }
@@ -160,19 +184,16 @@ function renderOperation(ul, status, operationId, operationDescription, timeSpen
         add15minButton.className = 'btn btn-outline-success btn-sm mr-2';
         add15minButton.innerText = '+15m';
         controlDiv.appendChild(add15minButton);
-        // tu dodamy obsługę kliknięcia przycisku "+15m"
 
         const add1hButton = document.createElement('button');
         add1hButton.className = 'btn btn-outline-success btn-sm mr-2';
         add1hButton.innerText = '+1h';
         controlDiv.appendChild(add1hButton);
-        // tu dodamy obsługę kliknięcia przycisku "+1h"
 
         const deleteButton = document.createElement('button');
         deleteButton.className = 'btn btn-outline-danger btn-sm';
         deleteButton.innerText = 'Delete';
         controlDiv.appendChild(deleteButton);
-        // tu dodamy obsługę kliknięcia przycisku "Delete"
     }
 }
 
@@ -185,8 +206,6 @@ function formatTime(timeSpent) {
         return minutes + 'm';
     }
 }
-
-
 
 document.addEventListener('DOMContentLoaded', function() {
     apiListAllTasks().then(
