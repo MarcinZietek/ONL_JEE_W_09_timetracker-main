@@ -67,6 +67,24 @@ function apiDeleteTask(taskId) {
     )
 }
 
+function apiCreateOperationForTask(taskId, description) {
+    return fetch(
+        apihost + '/api/tasks/' + taskId + '/operations',
+        {
+            headers: { Authorization: apikey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: description, timeSpent: 0 }),
+            method: 'POST'
+        }
+    ).then(
+        function (resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    );
+}
+
 
 function renderTask(taskId, title, description, status) {
     const section = document.createElement('section');
@@ -92,16 +110,13 @@ function renderTask(taskId, title, description, status) {
     const headerRightDiv = document.createElement('div');
     headerDiv.appendChild(headerRightDiv);
 
-    // kiedy zadanie ma status "closed", nie chcemy widzieć przycisku "Finish"
     if (status == 'open') {
         const finishButton = document.createElement('button');
         finishButton.className = 'btn btn-dark btn-sm js-task-open-only';
         finishButton.innerText = 'Finish';
         headerRightDiv.appendChild(finishButton);
-        // tu znajdzie się obsługa kliknięcia przycisku "Finish"
     }
 
-    // ...
     const deleteButton = document.createElement('button');
     deleteButton.className = 'btn btn-outline-danger btn-sm ml-2';
     deleteButton.innerText = 'Delete';
@@ -128,6 +143,7 @@ function renderTask(taskId, title, description, status) {
             );
         }
     );
+
 
     if(status == 'open') {
         const addOperationDiv = document.createElement('div');
@@ -157,6 +173,20 @@ function renderTask(taskId, title, description, status) {
         addButton.innerText = 'Add';
         inputGroupAppend.appendChild(addButton);
 
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            apiCreateOperationForTask(taskId, descriptionInput.value).then(
+                function(response) {
+                    renderOperation(
+                        ul,
+                        status,
+                        response.data.id,
+                        response.data.description,
+                        response.data.timeSpent
+                    );
+                }
+            )
+        });
     }
 
 }
